@@ -12,10 +12,16 @@ from classes import *
 
 # init FLUID object
 air = Composition()
-RRFluid = Fluid()
-print(RRFluid.tp2h(300,101300,air))
-print(RRFluid.tp2s(300,101300,air))
-print(RRFluid.tp2cp(300,101300,air))
+RRFluid = CeaFluid()
+BFluid = BuckerFluid()
+
+print('CEA_h',RRFluid.tp2h(300,101325,air))
+print('CEA_s',RRFluid.tp2s(300,101325,air))
+print('CEA_cp',RRFluid.tp2cp(300,101325,air))
+
+print('Bucker_h',BFluid.tp2h(300,101325,air))
+print('Bucker_s',BFluid.tp2s(300,101325,air))
+print('Bucker_cp',BFluid.tp2cp(300,101325,air))
 
 gas = Composition()
 

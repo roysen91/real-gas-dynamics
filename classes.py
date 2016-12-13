@@ -5,7 +5,7 @@ Created on 17.11.2016
 '''
 from math import *
 UnivGasConstant= 8.3143 # [J/mol*K]
-StandartPressure = 101300 # [Pa]
+StandartPressure = 101325 # [Pa]
 
 class EOS:
     
@@ -51,6 +51,7 @@ class Species:
     
     def __init__(self,name):
         self.cea_const=[]
+        self.bucker_const=[]
         self.name = name
         species_file = open('species.txt','r')
         for line in species_file:
@@ -63,17 +64,17 @@ class Species:
                 self.omega          = float(line[5])
                 break
         # load CEA coeffs from file
-        species_file = open('cea_constants.txt','r')
-        for line in species_file:
+        cea_file = open('cea_constants.txt','r')
+        for line in cea_file:
             line=line.split()
             if line[0] == self.name:
                 for value in range(1,len(line)):
                     self.cea_const.append(float(line[value]))
                 break
         # load Bucker coeffs from file
-        species_file = open('bucker_constants.txt','r')
-        for line in species_file:
-            line=line.split()
+        bucker_file = open('bucker_constants.txt','r')
+        for line in bucker_file:
+            line=line.split(',')
             if line[0] == self.name:
                 for value in range(1,len(line)):
                     self.bucker_const.append(float(line[value]))
@@ -111,17 +112,61 @@ class Composition(Species):
         self.eos = EOS(self,eos_name)
 
 class Fluid(EOS):
-    def __init__(self,ideal_method=None):
-        if ideal_method is None:
-            self.ideal_method='CEA'
-        else:
-            self.ideal_method=ideal_method
+    
+    def tp2h(self,t,p,comp):
+        return self.ideal(t,p,comp,'h')
+        #return self.ideal(t,p,comp,'h')+self.dep(t,p,comp,'h)
+    def tp2s(self,t,p,comp):
+        return self.ideal(t,p,comp,'s')
+    def tp2cp(self,t,p,comp):
+        return self.ideal(t,p,comp,'cp')
+class BuckerFluid(Fluid):
+    def __init__(self):
+        self.eos=EOS()
+        self.t0 = 273.15
+        # power for later use
+        self.b = [0.00, -1.50, -1.25, -0.75, -0.5, -0.25, 0.25, 0.5, 0.75, 1.0]
+    def set_eos(self,eos_name):
+        self.eos = EOS(self,eos_name)   
+    def ideal(self,t,p,comp,prop):
+        if prop is 'h':
+            h_ges = 0
+            h_species = 0
+            for species,fraction in comp.structure.items():
+                for i in range(10):
+                    h_species += species.bucker_const[i+2]*self.t0/(self.b[i]+1)*(t/self.t0)**(self.b[i]+1)
+                h_ges += fraction*(h_species+species.bucker_const[0])/comp.mol_wgt
+                h_species = 0
+            return h_ges
+
+        elif prop is 's':
+            s_ges = 0
+            s_species = 0
+            s_mix_k = 0
+            for species,fraction in comp.structure.items():
+                for i in range(3,12):
+                    s_species += species.bucker_const[i]/self.b[i-2]*(t/self.t0)**self.b[i-2]
+                s_mix_k += (fraction*(species.bucker_const[1]-UnivGasConstant*log(p/StandartPressure)+species.bucker_const[2]*log(t/self.t0)+s_species)
+                           -(UnivGasConstant/comp.mol_wgt)*fraction*log(fraction))
+                s_species = 0
+            return s_mix_k -(UnivGasConstant/comp.mol_wgt)*log(p/StandartPressure)
+
+        elif prop is 'cp':
+            cp_ges = 0
+            cp_species = 0
+            for species,fraction in comp.structure.items():
+                for i in range(10):
+                    cp_species += species.bucker_const[i+2]*(t/self.t0)**self.b[i]
+                cp_ges += fraction*(cp_species/comp.mol_wgt)
+                cp_species = 0
+            return cp_ges
+
+
+class CeaFluid(Fluid):
+    def __init__(self):
         self.eos=EOS()
     def set_eos(self,eos_name):
         self.eos = EOS(self,eos_name)   
-    def set_ideal_method(self,name):
-        # CEA,BUCKER,RRD,BRAUN
-        self.ideal_method=name
     def ideal(self,t,p,comp,prop):
         if prop is 'h':
             h_ges=0
@@ -211,10 +256,3 @@ class Fluid(EOS):
                                                                           +sp.cea_const[14]*t**3
                                                                           +sp.cea_const[15]*t**4)
                 return cp_ges
-    def tp2h(self,t,p,comp):
-        return self.ideal(t,p,comp,'h')
-        #return self.ideal(t,p,comp,'h')+self.dep(t,p,comp,'h)
-    def tp2s(self,t,p,comp):
-        return self.ideal(t,p,comp,'s')
-    def tp2cp(self,t,p,comp):
-        return self.ideal(t,p,comp,'cp')
