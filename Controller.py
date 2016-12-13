@@ -14,6 +14,10 @@ from classes import *
 air = Composition()
 RRFluid = Fluid()
 print(RRFluid.tp2h(300,101300,air))
+print(RRFluid.tp2s(300,101300,air))
+print(RRFluid.tp2cp(300,101300,air))
+
+gas = Composition()
 
 
 ##air.compress(p1,p2,T1,T2)

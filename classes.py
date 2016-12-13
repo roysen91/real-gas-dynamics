@@ -5,6 +5,7 @@ Created on 17.11.2016
 '''
 from math import *
 UnivGasConstant= 8.3143 # [J/mol*K]
+StandartPressure = 101300 # [Pa]
 
 class EOS:
     
@@ -61,12 +62,21 @@ class Species:
                 self.mol_wgt        = float(line[4])
                 self.omega          = float(line[5])
                 break
+        # load CEA coeffs from file
         species_file = open('cea_constants.txt','r')
         for line in species_file:
             line=line.split()
             if line[0] == self.name:
                 for value in range(1,len(line)):
                     self.cea_const.append(float(line[value]))
+                break
+        # load Bucker coeffs from file
+        species_file = open('bucker_constants.txt','r')
+        for line in species_file:
+            line=line.split()
+            if line[0] == self.name:
+                for value in range(1,len(line)):
+                    self.bucker_const.append(float(line[value]))
                 break
 
         
@@ -95,14 +105,17 @@ class Composition(Species):
             self.t_crit         += sp.t_crit*fraction
             self.p_crit         += sp.p_crit*fraction
             self.vol_mol_crit   += sp.vol_mol_crit*fraction
-            self.mol_wgt        += sp.mol_wgt*fraction
+            self.mol_wgt        += (sp.mol_wgt/1000)*fraction
             self.omega          += sp.omega*fraction
     def set_eos(self,eos_name):
         self.eos = EOS(self,eos_name)
 
 class Fluid(EOS):
-    ideal_method='CEA'  
-    def __init__(self):
+    def __init__(self,ideal_method=None):
+        if ideal_method is None:
+            self.ideal_method='CEA'
+        else:
+            self.ideal_method=ideal_method
         self.eos=EOS()
     def set_eos(self,eos_name):
         self.eos = EOS(self,eos_name)   
@@ -113,18 +126,95 @@ class Fluid(EOS):
         if prop is 'h':
             h_ges=0
             if t<=1000:
-                # sum zp enthalpy of every single species
+                # sum up enthalpy of every single species
                 for sp,fraction in comp.structure.items():
                     # sum up using species specific CEA constants
-                    h_ges+=(fraction*UnivGasConstant*t/comp.mol_wgt)*(-sp.cea_const[0]/t**2+sp.cea_const[1]*log(t)/t+sp.cea_const[2]+sp.cea_const[3]*t/2+sp.cea_const[4]*t**2/3+sp.cea_const[5]*t**3/4+sp.cea_const[6]*t**4/5+sp.cea_const[7]/t)
+                    h_ges+=(fraction*UnivGasConstant*t/comp.mol_wgt)*(-sp.cea_const[0]/t**2
+                                                                      +sp.cea_const[1]*log(t)/t
+                                                                      +sp.cea_const[2]
+                                                                      +sp.cea_const[3]*t/2
+                                                                      +sp.cea_const[4]*t**2/3
+                                                                      +sp.cea_const[5]*t**3/4
+                                                                      +sp.cea_const[6]*t**4/5
+                                                                      +sp.cea_const[7]/t)
             else:
                 # sum zp enthalpy of every single species
                 for name,fraction in comp.structure.items():
                     # create species object
                     sp = Species(name)
                     # sum up using species specific CEA constants
-                    h_ges+=(fraction*UnivGasConstant*t/comp.mol_wgt)*(-sp.cea_const[9]/t**2+sp.cea_const[10]*log(t)/t+sp.cea_const[11]+sp.cea_const[12]*t/2+sp.cea_const[13]*t**2/3+sp.cea_const[14]*t**3/4+sp.cea_const[15]*t**4/5+sp.cea_const[16]/t)
+                    h_ges+=(fraction*UnivGasConstant*t/comp.mol_wgt)*(-sp.cea_const[9]/t**2
+                                                                      +sp.cea_const[10]*log(t)/t
+                                                                      +sp.cea_const[11]
+                                                                      +sp.cea_const[12]*t/2
+                                                                      +sp.cea_const[13]*t**2/3
+                                                                      +sp.cea_const[14]*t**3/4
+                                                                      +sp.cea_const[15]*t**4/5
+                                                                      +sp.cea_const[16]/t)
             return h_ges
+        elif prop is 's':
+            s_ges=0
+            s_mix=0
+            if t<=1000:
+                # sum up enthalpy of every single species
+                for sp,fraction in comp.structure.items():
+                    # sum up using species specific CEA constants
+                    s_ges+=(fraction*UnivGasConstant/comp.mol_wgt)*(-sp.cea_const[0]/(2*t**2)
+                                                                      -sp.cea_const[1]/t
+                                                                      +sp.cea_const[2]*log(t)
+                                                                      +sp.cea_const[3]*t
+                                                                      +sp.cea_const[4]*t**2/2
+                                                                      +sp.cea_const[5]*t**3/3
+                                                                      +sp.cea_const[6]*t**4/4
+                                                                      +sp.cea_const[8])
+                    s_mix+=-fraction*(UnivGasConstant/comp.mol_wgt)*log(fraction)
+            else:
+                # sum up enthalpy of every single species
+                for name,fraction in comp.structure.items():
+                    # create species object
+                    sp = Species(name)
+                    # sum up using species specific CEA constants
+                    s_ges+=(fraction*UnivGasConstant/comp.mol_wgt)*(-sp.cea_const[9]/(2*t**2)
+                                                                      -sp.cea_const[10]/t
+                                                                      +sp.cea_const[11]*log(t)
+                                                                      +sp.cea_const[12]*t
+                                                                      +sp.cea_const[13]*t**2/2
+                                                                      +sp.cea_const[14]*t**3/3
+                                                                      +sp.cea_const[15]*t**4/4
+                                                                      +sp.cea_const[17])
+                s_mix+=-fraction*(UnivGasConstant/comp.mol_wgt)*log(fraction)
+            return s_ges+s_mix
+        elif prop is 'cp':
+                cp_ges=0
+                if t<=1000:
+                    # sum up enthalpy of every single species
+                    for sp,fraction in comp.structure.items():
+                        # sum up using species specific CEA constants
+                        cp_ges+=(fraction*UnivGasConstant/comp.mol_wgt)*(+sp.cea_const[0]/t**2
+                                                                          +sp.cea_const[1]/t
+                                                                          +sp.cea_const[2]
+                                                                          +sp.cea_const[3]*t
+                                                                          +sp.cea_const[4]*t**2
+                                                                          +sp.cea_const[5]*t**3
+                                                                          +sp.cea_const[6]*t**4)
+                else:
+                    # sum up enthalpy of every single species
+                    for name,fraction in comp.structure.items():
+                        # create species object
+                        sp = Species(name)
+                        # sum up using species specific CEA constants
+                        cp_ges+=(fraction*UnivGasConstant/comp.mol_wgt)*(+sp.cea_const[9]/(2*t**2)
+                                                                          +sp.cea_const[10]/t
+                                                                          +sp.cea_const[11]
+                                                                          +sp.cea_const[12]*t
+                                                                          +sp.cea_const[13]*t**2
+                                                                          +sp.cea_const[14]*t**3
+                                                                          +sp.cea_const[15]*t**4)
+                return cp_ges
     def tp2h(self,t,p,comp):
         return self.ideal(t,p,comp,'h')
         #return self.ideal(t,p,comp,'h')+self.dep(t,p,comp,'h)
+    def tp2s(self,t,p,comp):
+        return self.ideal(t,p,comp,'s')
+    def tp2cp(self,t,p,comp):
+        return self.ideal(t,p,comp,'cp')
