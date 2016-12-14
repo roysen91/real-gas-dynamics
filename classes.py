@@ -105,12 +105,14 @@ class Composition(Species):
         else:
             self.name = 'Mixture'
             self.structure=comp_def
+
         for sp,fraction in self.structure.items():
             self.t_crit         += sp.t_crit*fraction
             self.p_crit         += sp.p_crit*fraction
             self.vol_mol_crit   += sp.vol_mol_crit*fraction
             self.mol_wgt        += (sp.mol_wgt/1000)*fraction
             self.omega          += sp.omega*fraction
+        self.r_spec = UnivGasConstant/self.mol_wgt
     def set_eos(self,eos_name):
         self.eos = EOS(self,eos_name)
 
@@ -123,6 +125,19 @@ class Fluid(EOS):
         return self.ideal(t,p,comp,'s')
     def tp2cp(self,t,p,comp):
         return self.ideal(t,p,comp,'cp')
+    def tp2kappa_ideal(self,t,p,comp):
+        cp = self.tp2cp(t,p,comp)
+        return cp/(cp-comp.r_spec)
+    def tp2poly_exponent(self,eta_poly,t,p,comp):
+        kappa = self.tp2kappa_ideal(t,p,comp);
+        return 1/(1-((kappa-1)/kappa)*(1/eta_poly))
+    def isentropic_compression(self,t_in,p_in,p_out,comp):
+        kappa = self.tp2kappa_ideal(t_in,p_in,comp)
+        return t_in *(p_out/p_in)**((kappa-1)/kappa);
+    def polytropic_compression(self,eta_poly,t_in,p_in,p_out,comp):
+        poly_exp = self.tp2poly_exponent(eta_poly,t_in,p_in,comp)
+        return t_in *(p_out/p_in)**((poly_exp-1)/poly_exp);
+
 
 class RRDFluid(Fluid):
     def __init__(self):
@@ -243,7 +258,7 @@ class RRDFluid(Fluid):
                         
                     cp_ges = (comp.WGR * cp_water + cp_ges) / (1.0 + comp.WGR)
             return cp_ges * SpecHeatConversion
-            
+
 class BuckerFluid(Fluid):
     def __init__(self):
         self.eos=EOS()
