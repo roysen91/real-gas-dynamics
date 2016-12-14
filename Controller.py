@@ -4,31 +4,33 @@ Created on 17.11.2016
 @author: roysonntag
 '''
 from classes import *
-#import matplotlib.pyplot as plt
-#plt.plot([1,2,3,4])
-#plt.ylabel('some numbers')
-#plt.show()
+from Viewer import *
 
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
 
-# init FLUID object
-air = Composition()
-RRFluid = CeaFluid()
-BFluid = BuckerFluid()
-RFluid = RRDFluid()
+class Controller:
+	def __init__(self):
+		root = tk.Tk()
+		root.withdraw()
 
+		self.view = View(root)
+		self.view.mainloop()
 
-print('T_out:',RRFluid.isentropic_compression(288.15,101325,500000,air))
-print('T_out:',BFluid.isentropic_compression(288.15,101325,500000,air))
-print('T_out:',RFluid.isentropic_compression(288.15,101325,500000,air))
+	#def plot_cp(x_axis_list):
 
-print('T_out:',RRFluid.polytropic_compression(0.9,288.15,101325,500000,air))
-print('T_out:',BFluid.polytropic_compression(0.9,288.15,101325,500000,air))
-print('T_out:',RFluid.polytropic_compression(0.9,288.15,101325,500000,air))
-#print('RRD_h',RFluid.tp2h(300,101325,air))
-#print('RRD_s',RFluid.tp2s(300,101325,air))
-#print('RRD_cp',RFluid.tp2cp(300,101325,air))
+		#f = Figure(figsize=(5,5), dpi=100)
+		#a = f.add_subplot(111)
+		#a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
 
-gas = Composition()
+		#canvas = FigureCanvasTkAgg(f, self)
+		#canvas.show()
+		#canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
+		#toolbar = NavigationToolbar2TkAgg(canvas, self)
+		#toolbar.update()
+		#canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-##air.compress(p1,p2,T1,T2)
+Controller()
