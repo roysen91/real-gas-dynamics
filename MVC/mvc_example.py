@@ -44,7 +44,7 @@ class Observable:
 
     def _docallbacks(self):
         for func in self.callbacks:
-             func(self.data)
+            func(self.data)
 
     def set(self, data):
         self.data = data
