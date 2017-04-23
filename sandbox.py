@@ -3,6 +3,8 @@ Created on 13.02.2017
 
 @author: roysonntag
 '''
+import sys
+sys.path.insert(0, 'lib')
 from classes import *
 import numpy as np
 from constants import *
@@ -14,18 +16,17 @@ comp = Composition()
 my_fluid = CeaFluid(eos_model='SOA')
 my_fluid.eos.set_coeffs(comp)
 
-t_range = np.linspace(StandartTemperature,2000,200)
+eqr_range = np.linspace(0.1,1,10)
 p = StandartPressure
 
+t_onl_cea=[]
+file1 = 'data/CEA_tool/cea_full_rh=1.dat'
+file1_handle = open(file1,'r')
+for line in file1_handle:
+    line=line.strip().split(' ')
+    t_onl_cea.append(float(line[-1].split('=')[-1]))
+file1_handle.close()         
 
-kappa_ideal=[]
-kappa_soa=[]
-kappa_real=[]
-for t in t_range:
-    kappa_ideal.append(my_fluid.tp2kappa(t, p, comp))
-    kappa_soa.append(my_fluid.tp2kappa_eos(t, p, comp,mode='real'))
-    kappa_real.append(my_fluid.tp2kappa_eos(t, p, comp))
-    
 fig = plt.figure()
 ax1 = fig.add_subplot(1,1,1)
 #ax1.plot(pressure_ratio,eta_const,pressure_ratio,eta_mean_ideal,pressure_ratio,eta_mean_real)

@@ -155,6 +155,7 @@ class Composition(Species):
 
     def __init__(self,name='new_comp',comp_def=None):
         self.structure=dict()       # dictionary holding vol fraction and name of each species
+        self.mass_struct = dict()   # dict holding each species mass fraction
         self.rel_wgt=dict()       # dictionary holding mass fraction and name of each species
         self.r_spec=0    # specific gas constant  
         self.FAR = 0
@@ -197,7 +198,7 @@ class Composition(Species):
             self.omega          += sp.omega*fraction
         #calc relative weight of each species
         for sp,rel_vol in self.structure.items():
-            self.rel_wgt[sp.name] = rel_vol*(sp.mol_wgt/self.mol_wgt)
+            self.mass_struct[sp.name] = rel_vol*(sp.mol_wgt/self.mol_wgt)
         self.r_spec = UnivGasConstant/self.mol_wgt
     
     # returns list of comp fractions
