@@ -13,19 +13,22 @@ import matplotlib.pyplot as plt
 
 my_fuel = Composition(comp_def='Jet-A1')
 comp = Composition()
-my_fluid = CeaFluid(eos_model='SOA')
-my_fluid.eos.set_coeffs(comp)
+#my_fluid = CeaFluid(eos_model='SOA')
+#my_fluid.eos.set_coeffs(comp)
 
 eqr_range = np.linspace(0.1,1,10)
 p = StandartPressure
 
+#get CEA tool generated data
 t_onl_cea=[]
 file1 = 'data/CEA_tool/cea_full_rh=1.dat'
 file1_handle = open(file1,'r')
 for line in file1_handle:
     line=line.strip().split(' ')
     t_onl_cea.append(float(line[-1].split('=')[-1]))
-file1_handle.close()         
+file1_handle.close()   
+
+# calc t_out using own routine      
 
 fig = plt.figure()
 ax1 = fig.add_subplot(1,1,1)

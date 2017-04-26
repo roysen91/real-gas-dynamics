@@ -49,26 +49,37 @@ def plot_combustion_temperature(t_in,p_in,w_in,comp,models=['RRD','CEA','CANTERA
     elif baseline == 'Online CEA':
         eqr_range_cea = []
         t_onl_cea=[]
-        file1 = 'data/online_cea_combustion/largeChemSet_EQR_below1.dat'
-        file2 = 'data/online_cea_combustion/largeChemSet_EQR_above1.dat'
-        file1_handle = open(file1,'r')
-        for line in file1_handle:
-            if 'EQ.RATIO' in line:
-                line=line.strip().split(',')
-                eqr_range_cea.append(float(line[-1].split('=')[-1]))
-            elif 'T, K' in line:
-                line=line.strip().split(' ')
-                t_onl_cea.append(float(line[-1]))   
-        file1_handle.close()         
-        file2_handle = open(file2,'r')
-        for line in file2_handle:
-            if 'EQ.RATIO' in line:
-                line=line.strip().split(',')
-                eqr_range_cea.append(float(line[-1].split('=')[-1]))
-            elif 'T, K' in line:
-                line=line.strip().split(' ')
-                t_onl_cea.append(float(line[-1]))   
-        file2_handle.close() 
+        if comp.WGR_mole>0:
+            file1='data/CEA_tool/cea_full_rh=1.dat'
+            with open(file1,'r') as file1_handle:
+                # skip first row
+                next(file1_handle)
+                for line in file1_handle:
+                    line=line.strip().split('  ')
+                    eqr_range_cea.append(float(line[0]))
+                    t_onl_cea.append(float(line[1]))
+                file1_handle.close()   
+        elif comp.WGR_mole==0:
+            file1 = 'data/online_cea_combustion/largeChemSet_EQR_below1.dat'
+            file2 = 'data/online_cea_combustion/largeChemSet_EQR_above1.dat'
+            file1_handle = open(file1,'r')
+            for line in file1_handle:
+                if 'EQ.RATIO' in line:
+                    line=line.strip().split(',')
+                    eqr_range_cea.append(float(line[-1].split('=')[-1]))
+                elif 'T, K' in line:
+                    line=line.strip().split(' ')
+                    t_onl_cea.append(float(line[-1]))   
+            file1_handle.close()         
+            file2_handle = open(file2,'r')
+            for line in file2_handle:
+                if 'EQ.RATIO' in line:
+                    line=line.strip().split(',')
+                    eqr_range_cea.append(float(line[-1].split('=')[-1]))
+                elif 'T, K' in line:
+                    line=line.strip().split(' ')
+                    t_onl_cea.append(float(line[-1]))   
+            file2_handle.close() 
         eqr_range = np.array(eqr_range_cea)
         t_base    = np.array(t_onl_cea)
         # plot baseline values
@@ -97,7 +108,7 @@ def plot_combustion_temperature(t_in,p_in,w_in,comp,models=['RRD','CEA','CANTERA
             comb.heat_balance_calcs()
             t_rrd.append(comb.out_station.t)
         t_rrd = np.array(t_rrd)
-        diff_t_rrd = (t_rrd-t_base)/t_base
+        diff_t_rrd = (t_rrd-t_base)/t_base*100
         ax1.plot(eqr_range,t_rrd)
         ax2.plot(eqr_range,diff_t_rrd)
         legend1.append('RRD')
@@ -115,7 +126,7 @@ def plot_combustion_temperature(t_in,p_in,w_in,comp,models=['RRD','CEA','CANTERA
             comb.heat_balance_calcs()
             t_cea.append(comb.out_station.t)
         t_cea = np.array(t_cea)
-        diff_t_cea = (t_cea-t_base)/t_base
+        diff_t_cea = (t_cea-t_base)/t_base*100
         ax1.plot(eqr_range,t_cea)
         ax2.plot(eqr_range,diff_t_cea)
         legend1.append('CEA')
@@ -142,7 +153,7 @@ def plot_combustion_temperature(t_in,p_in,w_in,comp,models=['RRD','CEA','CANTERA
             gas2.equilibrate('HP')
             
             t_cantera[i] = gas2.T
-        diff_t_cantera = (t_cantera-t_base)/t_base
+        diff_t_cantera = (t_cantera-t_base)/t_base*100
         # plot baseline values
         ax1.plot(eqr_range,t_cantera)
         legend1.append('Cantera')

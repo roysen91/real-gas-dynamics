@@ -723,6 +723,11 @@ class CeaFluid(Fluid):
         c2 = gas.get_fraction('CO2')/gas.get_fraction('O2')
         c3 = gas.get_fraction('AR')/gas.get_fraction('O2')
         
+        dummy = Composition()
+        b1 = dummy.get_fraction('N2')/dummy.get_fraction('O2')
+        b2 = dummy.get_fraction('CO2')/dummy.get_fraction('O2')
+        b3 = dummy.get_fraction('AR')/dummy.get_fraction('O2')
+        
         # Jet A C12H23 used here
         mol_of_C = 12
         mol_of_H = 23
