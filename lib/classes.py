@@ -211,6 +211,9 @@ class Composition(Species):
         return (UnivGasConstant*t)/(p*self.mol_wgt)
             
     def set_WGR(self,WGR_mass):
+        if WGR_mass == 0:
+            #do nothing
+            return
         self.WGR_mass = WGR_mass
         water_obj = Species('H2O')
         dry_air_obj = Composition('Air')
