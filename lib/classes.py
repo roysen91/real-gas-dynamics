@@ -7,7 +7,7 @@ from math import *
 from constants import *
 import numpy as np
 
-class EquationOfState:   
+class EquationOfState:
     def __init__(self):
         self.a=0
         self.b=0
@@ -48,7 +48,7 @@ class EquationOfState:
         #else:
          #   self.a=0
           #  self.b=0
-        
+
 class VanDerWaals(EquationOfState):
     def __init__(self):
         EquationOfState.__init__(self)
@@ -94,8 +94,7 @@ class Soave(EquationOfState):
             v_mol = self.get_molare_volume(t, p, comp)
             s_dev = (UnivGasConstant/comp.mol_wgt)*log((p*(v_mol-self.b))/(UnivGasConstant*t))
             return s_dev
-            
-        
+
 class Species:
     t_crit=0
     p_crit=0
@@ -150,7 +149,7 @@ class Species:
             # there are no bucker constants for jet-a
             pass
             #print('Could not find Bucker coeffs for:',self.name,' in bucker_constants.txt!')
-        
+
 class Composition(Species):
 
     def __init__(self,name='new_comp',comp_def=None):
@@ -236,6 +235,7 @@ class Composition(Species):
         else:
             #set new gas properties
             self.set_gas_properties()
+
 class Fluid():
     # maximal number of iteration for konvergance
     max_iter = 40
@@ -459,7 +459,6 @@ class Fluid():
                         comp.set_WGR(0.0) 
             elif WGR_mass==None and RH==None and SH!=None:
                 print('No method for specific humidity in place')    
-            
 
 class RRDFluid(Fluid):
     def __init__(self,eos_model='VDW'):
@@ -628,7 +627,6 @@ class BuckerFluid(Fluid):
                 cp_ges += fraction*(cp_species/comp.mol_wgt)
                 cp_species = 0
             return cp_ges
-
 
 class CeaFluid(Fluid):
     def __init__(self,eos_model='VDW'):
