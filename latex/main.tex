@@ -1,0 +1,75 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage[
+	colorlinks=true,
+	urlcolor=blue,
+	linkcolor=green
+]{hyperref}
+
+\title{Real Gas Wiki}
+\author{Roy Sonntag}
+\date{August 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+    This object orientated python 3 library was build in order to quickly test and validate real gas models. The main scopes are to more accurately calculate gas properties and products of combustion as well as combustor outlet temperature. It is not constrained to any particular engine type. \\
+    There is a \textit{example.py} file set up to get started more quickly. The following section will explain the folder and some of the code structure.
+
+\section{Reference Models}
+    In order to test newly implemented real gas calculations references are needed. This library uses Cantera and the NASA's CEA Model for validation.
+    \subsection{Cantera}
+        'Cantera is a suite of object-oriented software tools for problems involving chemical kinetics, thermodynamics, and/or transport processes.' For more information visit: \url{http://www.cantera.org/docs/sphinx/html/index.html}
+    \subsection{Chemical Equilibrium with Applications (CEA)}
+        The computer model CEA was build by NASA to calculate chemical equilibrium and rocket perfomance.
+        It includes a vast database of chemical species data for calculation of thermodynamic properties. For more information see: 
+        \url{https://www.grc.nasa.gov/www/CEAWeb/}
+\section{Folder Structure}
+    In order to maintain readability and modularity all libraries and component object definitions are stored within the \textit{lib}-folder. The folder MVC contains all GUI related data.Although the GUI is not in a working state those file would be a starting point for a user interface using a model-view-controller structure. The folder \textit{Unit Test} contains files for testing purposes. There is a simple script implement to this point. But a test driven development should be used for further programming.\\
+    The file \textit{main} in the root folder can bee used to call various plotting functions from the library. It is possible at any point to create an entirely new file next to the main.py file.
+    
+    \subsection{Library}
+        All physical and thermodynamic background can be read in my bachelor thesis \cite{Bachelor}. This chapter will only examine the python implementation. 
+        \begin{itemize}
+            \item \textit{classes.py}\\
+                This file contains all objects regarding thermodynamic gas modelling. There is a species class which will import species critical properties as well as the CEA constants from the data files within the \textit{data} folder. There is a \textit{composition}-class which handles mixture of species and its properties.\\
+                There are two root classes \textit{EquationOfState} and \textit{Fluid}. The first is used for consideration of real gas effects within gas property calculation. The second is the base class of any fluid. There are three different kinds of fluids implemented. The main difference is the calculation of gas properties like cp, entropy and enthalpy as well as some different mixing rules.
+            \item \textit{combust.py}\\
+                This file contains the combustor class which is used for burning temperature calculation.
+            \item \textit{fuel.py}\\    
+                The fuel object definition is stored in this file. It contains some specific properties and the calculation of the fuel enthalpy for the combustion process.
+            \item \textit{station.py}\\
+                Within an engine model stations are numbered between every component and contain input or output properties for every component.
+            \item \textit{constants.py}\\
+                This file holds all constant definitions used globally.
+            \item \textit{plot\_functions.py}\\
+                Some standard plot functions e.g. burning temperature over equivalence ratio are to be found within this file.
+        \end{itemize}
+    \subsection{Data}
+    The data folder contains all species data and some results from  the online CEA tool and its desktop version. 
+        \begin{itemize}
+            \item \textit{species.txt}\\
+                This file contains critical properties for some of the relevant species as well as its mole weight and omega factor.Values are separated by a tab.
+            \item \textit{cea\_constants.txt}\\
+                If you choose to use the CEA model in order to calculate gas properties the coefficients from this file will be used. There are different coefficients for different temperature ranges. For more information see the NASA CEA manuals \cite{CEA1},\cite{CEA2}.
+            \item \textit{bucker\_constants.txt}\\
+                For the Bucker model these comma separated coefficients will be used. For more information see Buckers paper \cite{bucker}. 
+            \item \textit{online\_cea\_combustion}\\
+                This folder contains results from the online CEA tool \cite{onlineCEA}. All files are the result of the combustion of dry air and a certain set of combustion product species. If the file name contains \"largeChemSet\" all available products of combustion are used for the equilibrium. If it says \"reducesdChemSet\" only five to six species were considered for combustion products. 
+            \item \textit{janaf\_tables}\\
+                Files within this folder contain the janaf table for the dedicated species \cite{janaf}. Please keep in mind that data is only available for ambient pressure.
+            \item \textit{cea\_tool}\\
+                NASA provides a CEA desktop application for windows and linux which is capable of doing combustion calculation with moist air. You may download the app for free from \url{https://www.grc.nasa.gov/www/CEAWeb/ceaRequestForm.htm}. However the file contained in this folder was a combustion run of air with relative humidity of 100\% for EQR from 0.1 to 2.
+        \end{itemize}
+    \subsection{MVC}
+        Another idea was to implement a GUI for this library to facilitate quicker calculations. A basic Model-View-Controller structure was build but no further work has been done.
+    \subsection{Unit Test}
+        This folder can be used to set up unit tests. There is one basic test file already set up. If you choose to extend the library test driven development would be recommended.
+
+\bibliographystyle{unsrt}%Used BibTeX style is unsrt
+\bibliography{lib}        
+
+\end{document}
